@@ -1,0 +1,23 @@
+Código da Conta,Nome da Conta,Tipo,Grupo DRE,Conta Pai,Descrição
+1.0.00,ATIVO,Ativo,,,Grupo principal dos ativos
+1.1.00,ATIVO CIRCULANTE,Ativo,,1.0.00,Ativos de curto prazo
+1.1.01,Caixa e Equivalentes,Ativo,,1.1.00,Disponibilidades financeiras
+1.1.02,Contas a Receber,Ativo,,1.1.00,Valores a receber de clientes
+2.0.00,PASSIVO,Passivo,,,Grupo principal dos passivos
+2.1.00,PASSIVO CIRCULANTE,Passivo,,2.0.00,Obrigações de curto prazo
+2.1.01,Fornecedores,Passivo,,2.1.00,Valores a pagar para fornecedores
+3.0.00,PATRIMÔNIO LÍQUIDO,Patrimônio,,,Capital próprio da empresa
+4.0.00,RECEITAS,Receita,,,Grupo principal das receitas
+4.1.00,RECEITA OPERACIONAL,Receita,Receita Operacional,4.0.00,Receitas da atividade principal
+4.1.01,Venda de Gado,Receita,Receita Operacional,4.1.00,Receita com venda de animais
+4.1.02,Arrendamento de Pastos,Receita,Receita Operacional,4.1.00,Receita com aluguel de terras
+5.0.00,DESPESAS,Despesa,,,Grupo principal das despesas
+5.1.00,CUSTOS VARIÁVEIS,Despesa,Custo Variável,5.0.00,Custos que variam com a produção
+5.1.01,Aquisição de Gado,Despesa,Custo Variável,5.1.00,Compra de animais
+5.1.02,Alimentação Animal,Despesa,Custo Variável,5.1.00,Ração e suplementos
+5.1.03,Medicamentos Veterinários,Despesa,Custo Variável,5.1.00,Vacinas e medicamentos
+5.2.00,CUSTOS FIXOS,Despesa,Custo Fixo,5.0.00,Custos fixos da operação
+5.2.01,Salários e Encargos,Despesa,Custo Fixo,5.2.00,Folha de pagamento
+5.2.02,Manutenção de Equipamentos,Despesa,Custo Fixo,5.2.00,Reparos e manutenção
+5.2.03,Combustível,Despesa,Custo Fixo,5.2.00,Diesel e gasolina
+

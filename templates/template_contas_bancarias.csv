@@ -1,0 +1,7 @@
+Banco,Agência,Conta,Dígito,Tipo,Saldo Inicial,Limite de Crédito,Observações
+Banco do Brasil,1234,56789,0,Corrente,50000.00,10000.00,Conta principal da fazenda
+Bradesco,5678,12345,9,Corrente,25000.00,5000.00,Conta para pagamentos
+Caixa Econômica Federal,9876,54321,1,Poupança,100000.00,0.00,Reserva de emergência
+Sicoob,1111,22222,3,Corrente,15000.00,8000.00,Conta cooperativa
+Banco Inter,0001,98765,4,Corrente,5000.00,2000.00,Conta digital
+

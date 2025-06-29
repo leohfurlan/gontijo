@@ -1,0 +1,7 @@
+Descrição,Valor,Conta,Centro de Custo,Entidade,Data Competência,Data Vencimento,Data Liquidação,Tipo Lançamento,Status,Conta Bancária,Número NF
+Venda de 20 garrotes,50000.00,4.1.01,Fazenda Jacamim,João Silva,2024-01-15,2024-01-30,2024-01-30,Realizado,Recebido,Banco do Brasil,001
+Compra de ração,8500.00,5.1.02,Fazenda Marape,Fazenda São João,2024-01-10,2024-02-10,,Realizado,A Pagar,Bradesco,1234
+Salário funcionários,12000.00,5.2.01,Fazenda Jacamim,,2024-01-31,2024-02-05,2024-02-05,Realizado,Pago,Banco do Brasil,
+Medicamentos veterinários,2500.00,5.1.03,Fazenda Marape,Veterinária Animal Care,2024-01-20,2024-02-20,,Realizado,A Pagar,,5678
+Arrendamento de pasto,15000.00,4.1.02,Fazenda Jacamim,Carlos Pereira,2024-02-01,2024-02-01,2024-02-01,Realizado,Recebido,Caixa Econômica Federal,
+
