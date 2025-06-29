@@ -7,6 +7,7 @@
             <div class="col-md-12">
                 <div class="panel_s">
                     <div class="panel-body">
+<?php $this->load->view('admin/gestaofinanceira/_nav'); ?>
                         <div class="row">
                             <div class="col-md-8">
                                 <h4 class="no-margin"><?php echo $title; ?></h4>
