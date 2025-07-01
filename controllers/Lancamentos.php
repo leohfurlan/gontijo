@@ -1,5 +1,4 @@
 <?php
-
 defined('BASEPATH') or exit('No direct script access allowed');
 
 class Lancamentos extends AdminController
@@ -8,74 +7,84 @@ class Lancamentos extends AdminController
     {
         parent::__construct();
         $this->load->model('lancamentos_model');
+        $this->load->model('planocontas_model');
+        $this->load->model('entidades_model');
+        $this->load->model('centroscusto_model');
+        $this->load->helper('gestaofinanceira');
     }
 
-    /**
-     * Exibe a página principal com a TABELA de Lançamentos
-     */
     public function index()
     {
+        if (!has_permission('gestaofinanceira', '', 'view')) {
+            access_denied('gestaofinanceira');
+        }
+        
         $data['lancamentos'] = $this->lancamentos_model->get_all_lancamentos();
         $data['title'] = _l('gf_menu_lancamentos');
-        $this->load->view('gestaofinanceira/lancamentos/manage', $data);
+        
+        $this->load->view('admin/lancamentos/manage', $data);
     }
 
-    /**
-     * Função para ADICIONAR um novo lançamento (GET para mostrar, POST para salvar)
-     */
-    public function create()
+    public function lancamento($id = '')
     {
-        // Se a requisição for um POST, salva os dados
         if ($this->input->post()) {
-            $success = $this->lancamentos_model->add($this->input->post());
-            if ($success) {
-                set_alert('success', 'Lançamento adicionado com sucesso!');
-            } else {
-                set_alert('danger', 'Ocorreu um erro ao adicionar o lançamento.');
+            $data = $this->input->post();
+
+            if (isset($data['data_vencimento'])) {
+                $data['data_vencimento'] = to_sql_date($data['data_vencimento']);
             }
-            redirect(admin_url('gestaofinanceira/lancamentos'));
+            if (isset($data['data_liquidacao']) && !empty($data['data_liquidacao'])) {
+                $data['data_liquidacao'] = to_sql_date($data['data_liquidacao']);
+            } else {
+                $data['data_liquidacao'] = null;
+            }
+
+            if ($id == '') {
+                // Adicionar
+                $insert_id = $this->lancamentos_model->add_lancamento($data);
+                if ($insert_id) {
+                    set_alert('success', _l('added_successfully', _l('lancamento')));
+                    redirect(admin_url('gestaofinanceira/lancamentos'));
+                }
+            } else {
+                // Editar
+                $success = $this->lancamentos_model->update_lancamento($id, $data);
+                if ($success) {
+                    set_alert('success', _l('updated_successfully', _l('lancamento')));
+                }
+                redirect(admin_url('gestaofinanceira/lancamentos'));
+            }
         }
 
-        // Se for um GET, apenas prepara os dados e mostra a página do formulário
-        $data['title'] = 'Adicionar Novo Lançamento';
-        $data['categorias'] = $this->lancamentos_model->get_categorias();
-        $data['centros_custo'] = $this->lancamentos_model->get_centros_custo();
+        if ($id == '') {
+            $title = 'Adicionar Novo Lançamento';
+        } else {
+            $data['lancamento'] = $this->lancamentos_model->get_lancamento($id);
+            $title = 'Editar Lançamento: ' . ($data['lancamento']['descricao'] ?? '');
+        }
 
-        $this->load->view('gestaofinanceira/lancamentos/form_lancamento', $data);
+        $data['title']           = $title;
+        $data['contas']          = $this->planocontas_model->get_contas_lancamento();
+        $data['centros_custo']   = $this->centroscusto_model->get_centros_custo(['ativo' => 1]);
+        $data['entidades']       = $this->entidades_model->get_entidades(['ativo' => 1]);
+        
+        $this->load->view('admin/lancamentos/form_lancamento', $data);
     }
-
-    /**
-     * Função para EDITAR um lançamento existente (GET para mostrar, POST para salvar)
-     * @param int $id O ID do lançamento a ser editado
-     */
-    public function edit($id = '')
+    
+    public function delete($id)
     {
-        // Garante que um ID válido foi passado
-        if ($id == '' || !is_numeric($id)) {
+        if (!has_permission('gestaofinanceira', '', 'delete')) {
+            access_denied('gestaofinanceira');
+        }
+        if (!$id) {
             redirect(admin_url('gestaofinanceira/lancamentos'));
         }
-
-        // Se a requisição for um POST, atualiza os dados
-        if ($this->input->post()) {
-            // A função 'update' ainda precisa ser criada no seu Lancamentos_model
-            $success = $this->lancamentos_model->update($this->input->post(), $id);
-            if ($success) {
-                set_alert('success', 'Lançamento atualizado com sucesso!');
-            } else {
-                set_alert('danger', 'Ocorreu um erro ao atualizar o lançamento.');
-            }
-            redirect(admin_url('gestaofinanceira/lancamentos'));
+        $success = $this->lancamentos_model->delete_lancamento($id);
+        if ($success) {
+            set_alert('success', _l('deleted', _l('lancamento')));
+        } else {
+            set_alert('warning', _l('problem_deleting', _l('lancamento')));
         }
-
-        // Se for um GET, busca os dados do lançamento para preencher o formulário
-        $data['title'] = 'Editar Lançamento';
-        
-        // A função 'get' ainda precisa ser criada no seu Lancamentos_model
-        $data['lancamento'] = $this->lancamentos_model->get($id);
-        
-        $data['categorias'] = $this->lancamentos_model->get_categorias();
-        $data['centros_custo'] = $this->lancamentos_model->get_centros_custo();
-
-        $this->load->view('gestaofinanceira/lancamentos/form_lancamento', $data);
+        redirect(admin_url('gestaofinanceira/lancamentos'));
     }
 }

@@ -2,95 +2,87 @@
 
 defined('BASEPATH') or exit('No direct script access allowed');
 
-class Lancamentos extends App_table
+class Lancamentos_table extends App_table
 {
     public function __construct()
     {
-        // A forma mais segura de chamar o construtor, sem parâmetros.
-        parent::__construct();
+        // O último parâmetro 'lancamentos' é a classe CSS que usaremos na view.
+        parent::__construct('lancamentos');
     }
 
-    public function get_sql_select()
+    /**
+     * Retorna as colunas do banco de dados a serem usadas na tabela.
+     */
+    protected function get_columns()
     {
-        // Esta parte está correta.
         return [
-            db_prefix() . 'gf_lancamentos.id as id',
-            db_prefix() . 'gf_lancamentos.tipo as tipo',
-            db_prefix() . 'gf_lancamentos.descricao as descricao',
-            db_prefix() . 'gf_lancamentos.valor as valor',
-            db_prefix() . 'gf_lancamentos.data_vencimento as data_vencimento',
-            db_prefix() . 'gf_categorias.nome as categoria_nome',
-            db_prefix() . 'gf_centros_custo.nome as centro_custo_nome',
-            db_prefix() . 'gf_lancamentos.status as status',
+            db_prefix() . 'gf_lancamentos_financeiros.id as id',
+            'pc.tipo_conta as tipo_conta',
+            'lf.descricao as descricao',
+            'lf.valor as valor',
+            'lf.data_vencimento as data_vencimento',
+            'pc.nome_conta as nome_conta',
+            'cc.nome as centro_custo_nome',
+            'lf.status as status',
         ];
     }
 
-    public function get_sql_from()
+    /**
+     * Monta a consulta SQL com todos os joins necessários.
+     */
+    protected function get_query()
     {
-        // Correto.
-        return db_prefix() . 'gf_lancamentos';
+        $this->ci->db->select($this->get_columns_as_string() . ', e.nome_razao_social as entidade_nome');
+        $this->ci->db->from(db_prefix() . 'gf_lancamentos_financeiros lf');
+        $this->ci->db->join(db_prefix() . 'gf_plano_contas pc', 'lf.id_plano_contas = pc.id', 'left');
+        $this->ci->db->join(db_prefix() . 'gf_entidades e', 'lf.id_entidade = e.id', 'left');
+        $this->ci->db->join(db_prefix() . 'gf_centros_custo cc', 'lf.id_centro_custo = cc.id', 'left');
     }
 
-    public function get_sql_join()
+    /**
+     * Formata cada linha da tabela antes de exibir.
+     */
+    protected function row_attributes($aRow)
     {
-        // *** CORREÇÃO APLICADA AQUI ***
-        // Adicionamos o db_prefix() a TODAS as tabelas no JOIN.
-        return [
-           'LEFT JOIN ' . db_prefix() . 'gf_categorias ON ' . db_prefix() . 'gf_categorias.id = ' . db_prefix() . 'gf_lancamentos.categoria_id',
-           'LEFT JOIN ' . db_prefix() . 'gf_centros_custo ON ' . db_prefix() . 'gf_centros_custo.id = ' . db_prefix() . 'gf_lancamentos.centro_custo_id',
-        ];
-    }
+        // Coluna 1: ID
+        $row[0] = $aRow['id'];
 
-    public function get_columns()
-    {
-        // Para garantir que vai funcionar, vamos usar a formatação mais segura e recomendada.
-        $columns = [
-            'id'             => 'ID',
-            'tipo'           => [
-                'name'     => 'Tipo',
-                 'formatter' => function ($value) {
-                    if ($value == 'receita') {
-                        return '<span class="label label-success">Receita</span>';
-                    }
-                    return '<span class="label label-danger">Despesa</span>';
-                },
-            ],
-            'descricao'      => 'Descrição',
-            'valor'          => [
-                'name' => 'Valor',
-                'formatter' => function ($value) {
-                    return app_format_money($value, get_base_currency());
-                }
-            ],
-            'data_vencimento' => [
-                'name' => 'Vencimento',
-                 'formatter' => function ($value) {
-                    return _d($value);
-                },
-            ],
-            'categoria_nome'    => 'Categoria',
-            'centro_custo_nome' => 'Centro de Custo',
-            'status'         => [
-                'name'     => 'Status',
-                 'formatter' => function ($value) {
-                    if ($value == 'pago_recebido') {
-                        return '<span class="label label-info">Pago/Recebido</span>';
-                    }
-                    return '<span class="label label-warning">A Pagar/Receber</span>';
-                },
-            ],
-        ];
+        // Coluna 2: Tipo (Receita/Despesa)
+        if ($aRow['tipo_conta'] == 'Receita') {
+            $row[1] = '<span class="label label-success">Receita</span>';
+        } else {
+            $row[1] = '<span class="label label-danger">Despesa</span>';
+        }
 
-        $columns['opcoes'] = [
-            'name' => 'Opções',
-            'formatter' => function ($value, $row) {
-                $id = $row['id'];
-                $options = icon_btn('#', 'pencil-square-o', 'btn-default'); // Botão de editar (futuro)
-                $options .= icon_btn('#', 'remove', 'btn-danger _delete'); // Botão de excluir (futuro)
-                return $options;
-            }
-        ];
+        // Coluna 3: Descrição com link para edição
+        $row[2] = '<a href="' . admin_url('gestaofinanceira/lancamentos/lancamento/' . $aRow['id']) . '">' . $aRow['descricao'] . '</a>';
+        if ($aRow['entidade_nome']) {
+            $row[2] .= '<div class="row-options">' . $aRow['entidade_nome'] . '</div>';
+        }
 
-        return $columns;
+        // Coluna 4: Valor
+        $row[3] = format_currency_br($aRow['valor']);
+
+        // Coluna 5: Data de Vencimento
+        $row[4] = _d($aRow['data_vencimento']);
+
+        // Coluna 6: Categoria (Plano de Contas)
+        $row[5] = $aRow['nome_conta'];
+
+        // Coluna 7: Centro de Custo
+        $row[6] = $aRow['centro_custo_nome'];
+
+        // Coluna 8: Status
+        $row[7] = get_status_badge($aRow['status']);
+
+        // Coluna 9: Opções
+        $options = icon_btn('gestaofinanceira/lancamentos/lancamento/' . $aRow['id'], 'pencil-square-o');
+        $options .= icon_btn('gestaofinanceira/lancamentos/delete/' . $aRow['id'], 'remove', 'btn-danger _delete');
+        $row[8] = $options;
+        
+        // Adiciona classe CSS se estiver vencido
+        $row['DT_RowClass'] = get_overdue_class($aRow['data_vencimento'], $aRow['status']);
+
+        return $row;
     }
 }

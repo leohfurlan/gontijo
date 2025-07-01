@@ -3,7 +3,7 @@
 defined('BASEPATH') or exit('No direct script access allowed');
 
 /**
- * Helper functions para o módulo Gestão de Fazendas
+ * Helper functions para o módulo Gestão Financeira
  */
 
 if (!function_exists('format_currency_br')) {
@@ -246,38 +246,7 @@ if (!function_exists('get_overdue_class')) {
     }
 }
 
-if (!function_exists('export_to_excel')) {
-    /**
-     * Exportar dados para Excel
-     */
-    function export_to_excel($data, $filename, $headers = [])
-    {
-        header('Content-Type: application/vnd.ms-excel');
-        header('Content-Disposition: attachment; filename="' . $filename . '.xls"');
-        header('Cache-Control: max-age=0');
-        
-        echo '<table border="1">';
-        
-        if (!empty($headers)) {
-            echo '<tr>';
-            foreach ($headers as $header) {
-                echo '<th>' . $header . '</th>';
-            }
-            echo '</tr>';
-        }
-        
-        foreach ($data as $row) {
-            echo '<tr>';
-            foreach ($row as $cell) {
-                echo '<td>' . $cell . '</td>';
-            }
-            echo '</tr>';
-        }
-        
-        echo '</table>';
-        exit;
-    }
-}
+
 
 if (!function_exists('log_activity')) {
     /**
@@ -299,7 +268,7 @@ if (!function_exists('log_activity')) {
             'data_atividade' => date('Y-m-d H:i:s')
         ];
         
-        $CI->db->insert(db_prefix() . 'tblfaz_log_atividades', $log_data);
+        $CI->db->insert(db_prefix() . 'gf_log_atividades', $log_data);
     }
 }
 

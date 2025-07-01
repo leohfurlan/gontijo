@@ -6,32 +6,32 @@ class Configuracoes extends AdminController
     public function __construct()
     {
         parent::__construct();
-        $this->load->model('gestaofinanceira_model');
+        // CORREÇÃO: Carregando o model específico de configurações.
+        $this->load->model('configuracoes_model');
         $this->load->helper('gestaofinanceira');
     }
 
     public function index()
     {
-        if (!has_permission('gestao_fazendas', '', 'edit')) {
-            access_denied('gestao_fazendas');
+        // CORREÇÃO: A permissão principal do módulo é 'gestaofinanceira'.
+        // Apenas administradores ou quem tem a permissão de edição pode alterar.
+        if (!has_permission('gestaofinanceira', '', 'edit') && !is_admin()) {
+            access_denied('gestaofinanceira');
         }
 
         if ($this->input->post()) {
-            $this->_handle_configuracoes_form();
-            return;
+            $success = $this->configuracoes_model->update_configuracoes($this->input->post());
+            if ($success) {
+                set_alert('success', _l('settings_updated'));
+            } else {
+                set_alert('danger', _l('problem_updating', _l('settings')));
+            }
+            redirect(admin_url('gestaofinanceira/configuracoes'));
         }
 
         $data['title'] = _l('gf_menu_configuracoes');
-        $data['configuracoes'] = $this->gestaofinanceira_model->get_configuracoes();
-        $this->load->view('admin/gestaofinanceira/configuracoes', $data);
-    }
-
-    private function _handle_configuracoes_form()
-    {
-        $data = $this->input->post();
-        $success = $this->gestaofinanceira_model->update_configuracoes($data);
-        $message = $success ? _l('gf_msg_sucesso_salvar') : _l('gf_msg_erro_salvar');
-        set_alert($success ? 'success' : 'danger', $message);
-        redirect(admin_url('gestaofinanceira/configuracoes'));
+        // CORREÇÃO: Buscando as configurações do model correto.
+        $data['configuracoes'] = $this->configuracoes_model->get_configuracoes();
+        $this->load->view('admin/configuracoes/manage', $data);
     }
 }

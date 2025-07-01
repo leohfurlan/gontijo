@@ -3,17 +3,16 @@
 defined('BASEPATH') or exit('No direct script access allowed');
 
 /**
- * Instalação do Módulo Gestão de Fazendas
- * 
+ * Instalação do Módulo Gestão Financeira
  * Este arquivo contém todas as migrations necessárias para criar
- * a estrutura de banco de dados do módulo de gestão de fazendas.
+ * a estrutura de banco de dados do módulo.
  */
 
 $CI = &get_instance();
 $db_prefix = db_prefix();
 
 // 1. Tabela de Entidades (Clientes, Fornecedores, Credores)
-$sql_entidades = "CREATE TABLE IF NOT EXISTS `{$db_prefix}tblfaz_entidades` (
+$sql_entidades = "CREATE TABLE IF NOT EXISTS `{$db_prefix}gf_entidades` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
     `nome_razao_social` VARCHAR(255) NOT NULL,
     `cpf_cnpj` VARCHAR(18) NULL,
@@ -31,15 +30,15 @@ $sql_entidades = "CREATE TABLE IF NOT EXISTS `{$db_prefix}tblfaz_entidades` (
 
 if ($CI->db->query($sql_entidades)) {
     // Inserir entidades padrão
-    $CI->db->query("INSERT IGNORE INTO `{$db_prefix}tblfaz_entidades` 
-        (`nome_razao_social`, `tipo_entidade`) VALUES 
+    $CI->db->query("INSERT IGNORE INTO `{$db_prefix}gf_entidades`
+        (`nome_razao_social`, `tipo_entidade`) VALUES
         ('Fazenda Jacamim', 'Cliente'),
         ('Fazenda Marape', 'Cliente'),
         ('Fornecedor Padrão', 'Fornecedor')");
 }
 
 // 2. Tabela de Centros de Custo
-$sql_centros_custo = "CREATE TABLE IF NOT EXISTS `{$db_prefix}tblfaz_centros_custo` (
+$sql_centros_custo = "CREATE TABLE IF NOT EXISTS `{$db_prefix}gf_centros_custo` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
     `nome` VARCHAR(100) NOT NULL,
     `tipo` VARCHAR(50) NOT NULL DEFAULT 'Operacional',
@@ -51,15 +50,15 @@ $sql_centros_custo = "CREATE TABLE IF NOT EXISTS `{$db_prefix}tblfaz_centros_cus
 
 if ($CI->db->query($sql_centros_custo)) {
     // Inserir centros de custo padrão
-    $CI->db->query("INSERT IGNORE INTO `{$db_prefix}tblfaz_centros_custo` 
-        (`nome`, `tipo`) VALUES 
+    $CI->db->query("INSERT IGNORE INTO `{$db_prefix}gf_centros_custo`
+        (`nome`, `tipo`) VALUES
         ('Fazenda Jacamim', 'Operacional'),
         ('Fazenda Marape', 'Operacional'),
         ('Rateio Administrativo', 'Administrativo')");
 }
 
 // 3. Tabela de Plano de Contas
-$sql_plano_contas = "CREATE TABLE IF NOT EXISTS `{$db_prefix}tblfaz_plano_contas` (
+$sql_plano_contas = "CREATE TABLE IF NOT EXISTS `{$db_prefix}gf_plano_contas` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
     `id_pai` INT NULL,
     `codigo_conta` VARCHAR(50) NOT NULL,
@@ -69,7 +68,7 @@ $sql_plano_contas = "CREATE TABLE IF NOT EXISTS `{$db_prefix}tblfaz_plano_contas
     `aceita_lancamento` BOOLEAN NOT NULL DEFAULT TRUE,
     `ativo` BOOLEAN NOT NULL DEFAULT TRUE,
     `data_cadastro` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (`id_pai`) REFERENCES `{$db_prefix}tblfaz_plano_contas`(`id`) ON DELETE SET NULL,
+    FOREIGN KEY (`id_pai`) REFERENCES `{$db_prefix}gf_plano_contas`(`id`) ON DELETE SET NULL,
     INDEX `idx_tipo_conta` (`tipo_conta`),
     INDEX `idx_grupo_dre` (`grupo_dre`),
     INDEX `idx_aceita_lancamento` (`aceita_lancamento`),
@@ -79,8 +78,8 @@ $sql_plano_contas = "CREATE TABLE IF NOT EXISTS `{$db_prefix}tblfaz_plano_contas
 
 if ($CI->db->query($sql_plano_contas)) {
     // Inserir plano de contas básico
-    $CI->db->query("INSERT IGNORE INTO `{$db_prefix}tblfaz_plano_contas` 
-        (`codigo_conta`, `nome_conta`, `tipo_conta`, `grupo_dre`, `aceita_lancamento`) VALUES 
+    $CI->db->query("INSERT IGNORE INTO `{$db_prefix}gf_plano_contas`
+        (`codigo_conta`, `nome_conta`, `tipo_conta`, `grupo_dre`, `aceita_lancamento`) VALUES
         ('4.0.0.00', 'RECEITAS', 'Receita', 'Receita Operacional', FALSE),
         ('4.1.0.00', 'Receita Operacional', 'Receita', 'Receita Operacional', FALSE),
         ('4.1.1.00', 'Venda de Gado', 'Receita', 'Receita Operacional', TRUE),
@@ -97,7 +96,7 @@ if ($CI->db->query($sql_plano_contas)) {
 }
 
 // 4. Tabela de Contas Bancárias
-$sql_contas_bancarias = "CREATE TABLE IF NOT EXISTS `{$db_prefix}tblfaz_contas_bancarias` (
+$sql_contas_bancarias = "CREATE TABLE IF NOT EXISTS `{$db_prefix}gf_contas_bancarias` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
     `id_centro_custo` INT NOT NULL,
     `banco` VARCHAR(100) NOT NULL,
@@ -107,7 +106,7 @@ $sql_contas_bancarias = "CREATE TABLE IF NOT EXISTS `{$db_prefix}tblfaz_contas_b
     `data_saldo_inicial` DATE NOT NULL,
     `ativo` BOOLEAN NOT NULL DEFAULT TRUE,
     `data_cadastro` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (`id_centro_custo`) REFERENCES `{$db_prefix}tblfaz_centros_custo`(`id`) ON DELETE RESTRICT,
+    FOREIGN KEY (`id_centro_custo`) REFERENCES `{$db_prefix}gf_centros_custo`(`id`) ON DELETE RESTRICT,
     INDEX `idx_centro_custo` (`id_centro_custo`),
     INDEX `idx_ativo` (`ativo`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;";
@@ -115,7 +114,7 @@ $sql_contas_bancarias = "CREATE TABLE IF NOT EXISTS `{$db_prefix}tblfaz_contas_b
 $CI->db->query($sql_contas_bancarias);
 
 // 5. Tabela de Lançamentos Financeiros
-$sql_lancamentos = "CREATE TABLE IF NOT EXISTS `{$db_prefix}tblfaz_lancamentos_financeiros` (
+$sql_lancamentos = "CREATE TABLE IF NOT EXISTS `{$db_prefix}gf_lancamentos_financeiros` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
     `id_plano_contas` INT NOT NULL,
     `id_entidade` INT NULL,
@@ -133,10 +132,10 @@ $sql_lancamentos = "CREATE TABLE IF NOT EXISTS `{$db_prefix}tblfaz_lancamentos_f
     `observacoes` TEXT NULL,
     `data_cadastro` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `data_atualizacao` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (`id_plano_contas`) REFERENCES `{$db_prefix}tblfaz_plano_contas`(`id`) ON DELETE RESTRICT,
-    FOREIGN KEY (`id_entidade`) REFERENCES `{$db_prefix}tblfaz_entidades`(`id`) ON DELETE SET NULL,
-    FOREIGN KEY (`id_centro_custo`) REFERENCES `{$db_prefix}tblfaz_centros_custo`(`id`) ON DELETE RESTRICT,
-    FOREIGN KEY (`id_conta_bancaria`) REFERENCES `{$db_prefix}tblfaz_contas_bancarias`(`id`) ON DELETE SET NULL,
+    FOREIGN KEY (`id_plano_contas`) REFERENCES `{$db_prefix}gf_plano_contas`(`id`) ON DELETE RESTRICT,
+    FOREIGN KEY (`id_entidade`) REFERENCES `{$db_prefix}gf_entidades`(`id`) ON DELETE SET NULL,
+    FOREIGN KEY (`id_centro_custo`) REFERENCES `{$db_prefix}gf_centros_custo`(`id`) ON DELETE RESTRICT,
+    FOREIGN KEY (`id_conta_bancaria`) REFERENCES `{$db_prefix}gf_contas_bancarias`(`id`) ON DELETE SET NULL,
     INDEX `idx_plano_contas` (`id_plano_contas`),
     INDEX `idx_entidade` (`id_entidade`),
     INDEX `idx_centro_custo` (`id_centro_custo`),
@@ -151,7 +150,7 @@ $sql_lancamentos = "CREATE TABLE IF NOT EXISTS `{$db_prefix}tblfaz_lancamentos_f
 $CI->db->query($sql_lancamentos);
 
 // 6. Tabela de Endividamento (Contratos de Dívida)
-$sql_endividamento = "CREATE TABLE IF NOT EXISTS `{$db_prefix}tblfaz_endividamento` (
+$sql_endividamento = "CREATE TABLE IF NOT EXISTS `{$db_prefix}gf_endividamento` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
     `id_credor` INT NOT NULL,
     `numero_contrato` VARCHAR(100) NOT NULL,
@@ -163,7 +162,7 @@ $sql_endividamento = "CREATE TABLE IF NOT EXISTS `{$db_prefix}tblfaz_endividamen
     `observacoes` TEXT NULL,
     `data_cadastro` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `data_atualizacao` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (`id_credor`) REFERENCES `{$db_prefix}tblfaz_entidades`(`id`) ON DELETE RESTRICT,
+    FOREIGN KEY (`id_credor`) REFERENCES `{$db_prefix}gf_entidades`(`id`) ON DELETE RESTRICT,
     INDEX `idx_credor` (`id_credor`),
     INDEX `idx_status` (`status`),
     INDEX `idx_data_contratacao` (`data_contratacao`),
@@ -173,7 +172,7 @@ $sql_endividamento = "CREATE TABLE IF NOT EXISTS `{$db_prefix}tblfaz_endividamen
 $CI->db->query($sql_endividamento);
 
 // 7. Tabela de Parcelas de Endividamento
-$sql_parcelas = "CREATE TABLE IF NOT EXISTS `{$db_prefix}tblfaz_endividamento_parcelas` (
+$sql_parcelas = "CREATE TABLE IF NOT EXISTS `{$db_prefix}gf_endividamento_parcelas` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
     `id_endividamento` INT NOT NULL,
     `id_lancamento` INT NULL,
@@ -186,8 +185,8 @@ $sql_parcelas = "CREATE TABLE IF NOT EXISTS `{$db_prefix}tblfaz_endividamento_pa
     `data_pagamento` DATE NULL,
     `data_cadastro` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `data_atualizacao` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (`id_endividamento`) REFERENCES `{$db_prefix}tblfaz_endividamento`(`id`) ON DELETE CASCADE,
-    FOREIGN KEY (`id_lancamento`) REFERENCES `{$db_prefix}tblfaz_lancamentos_financeiros`(`id`) ON DELETE SET NULL,
+    FOREIGN KEY (`id_endividamento`) REFERENCES `{$db_prefix}gf_endividamento`(`id`) ON DELETE CASCADE,
+    FOREIGN KEY (`id_lancamento`) REFERENCES `{$db_prefix}gf_lancamentos_financeiros`(`id`) ON DELETE SET NULL,
     INDEX `idx_endividamento` (`id_endividamento`),
     INDEX `idx_lancamento` (`id_lancamento`),
     INDEX `idx_status` (`status`),
@@ -198,7 +197,7 @@ $sql_parcelas = "CREATE TABLE IF NOT EXISTS `{$db_prefix}tblfaz_endividamento_pa
 $CI->db->query($sql_parcelas);
 
 // 8. Tabela de Ativos de Gado (Lotes de Gado)
-$sql_ativos_gado = "CREATE TABLE IF NOT EXISTS `{$db_prefix}tblfaz_ativos_gado` (
+$sql_ativos_gado = "CREATE TABLE IF NOT EXISTS `{$db_prefix}gf_ativos_gado` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
     `id_lancamento_compra` INT NULL,
     `id_centro_custo` INT NOT NULL,
@@ -212,8 +211,8 @@ $sql_ativos_gado = "CREATE TABLE IF NOT EXISTS `{$db_prefix}tblfaz_ativos_gado` 
     `observacoes` TEXT NULL,
     `data_cadastro` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `data_atualizacao` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (`id_lancamento_compra`) REFERENCES `{$db_prefix}tblfaz_lancamentos_financeiros`(`id`) ON DELETE SET NULL,
-    FOREIGN KEY (`id_centro_custo`) REFERENCES `{$db_prefix}tblfaz_centros_custo`(`id`) ON DELETE RESTRICT,
+    FOREIGN KEY (`id_lancamento_compra`) REFERENCES `{$db_prefix}gf_lancamentos_financeiros`(`id`) ON DELETE SET NULL,
+    FOREIGN KEY (`id_centro_custo`) REFERENCES `{$db_prefix}gf_centros_custo`(`id`) ON DELETE RESTRICT,
     INDEX `idx_lancamento_compra` (`id_lancamento_compra`),
     INDEX `idx_centro_custo` (`id_centro_custo`),
     INDEX `idx_categoria` (`categoria`),
@@ -224,7 +223,7 @@ $sql_ativos_gado = "CREATE TABLE IF NOT EXISTS `{$db_prefix}tblfaz_ativos_gado` 
 $CI->db->query($sql_ativos_gado);
 
 // 9. Tabela de Configurações do Módulo
-$sql_configuracoes = "CREATE TABLE IF NOT EXISTS `{$db_prefix}tblfaz_configuracoes` (
+$sql_configuracoes = "CREATE TABLE IF NOT EXISTS `{$db_prefix}gf_configuracoes` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
     `chave` VARCHAR(100) NOT NULL,
     `valor` TEXT NULL,
@@ -237,8 +236,8 @@ $sql_configuracoes = "CREATE TABLE IF NOT EXISTS `{$db_prefix}tblfaz_configuraco
 
 if ($CI->db->query($sql_configuracoes)) {
     // Inserir configurações padrão
-    $CI->db->query("INSERT IGNORE INTO `{$db_prefix}tblfaz_configuracoes` 
-        (`chave`, `valor`, `descricao`, `tipo`) VALUES 
+    $CI->db->query("INSERT IGNORE INTO `{$db_prefix}gf_configuracoes`
+        (`chave`, `valor`, `descricao`, `tipo`) VALUES
         ('percentual_rateio_jacamim', '50', 'Percentual de rateio para Fazenda Jacamim', 'numeric'),
         ('percentual_rateio_marape', '50', 'Percentual de rateio para Fazenda Marape', 'numeric'),
         ('moeda_padrao', 'BRL', 'Moeda padrão do sistema', 'string'),
@@ -246,7 +245,7 @@ if ($CI->db->query($sql_configuracoes)) {
 }
 
 // 10. Tabela de Log de Atividades (Auditoria)
-$sql_log_atividades = "CREATE TABLE IF NOT EXISTS `{$db_prefix}tblfaz_log_atividades` (
+$sql_log_atividades = "CREATE TABLE IF NOT EXISTS `{$db_prefix}gf_log_atividades` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
     `usuario_id` INT NOT NULL,
     `tabela` VARCHAR(100) NOT NULL,
@@ -266,39 +265,38 @@ $sql_log_atividades = "CREATE TABLE IF NOT EXISTS `{$db_prefix}tblfaz_log_ativid
 
 $CI->db->query($sql_log_atividades);
 
-// Criar views para relatórios
+// CORREÇÃO: O nome da VIEW e os nomes das tabelas dentro dela foram corrigidos.
 $sql_view_saldo_contas = "CREATE OR REPLACE VIEW `{$db_prefix}view_saldo_contas_bancarias` AS
-SELECT 
+SELECT
     cb.id,
     cb.banco,
     cb.agencia,
     cb.conta,
     cb.saldo_inicial,
     COALESCE(SUM(
-        CASE 
+        CASE
             WHEN pc.tipo_conta = 'Receita' AND lf.data_liquidacao IS NOT NULL THEN lf.valor
             WHEN pc.tipo_conta = 'Despesa' AND lf.data_liquidacao IS NOT NULL THEN -lf.valor
             ELSE 0
         END
     ), 0) as movimentacao,
     (cb.saldo_inicial + COALESCE(SUM(
-        CASE 
+        CASE
             WHEN pc.tipo_conta = 'Receita' AND lf.data_liquidacao IS NOT NULL THEN lf.valor
             WHEN pc.tipo_conta = 'Despesa' AND lf.data_liquidacao IS NOT NULL THEN -lf.valor
             ELSE 0
         END
     ), 0)) as saldo_atual
-FROM `{$db_prefix}tblfaz_contas_bancarias` cb
-LEFT JOIN `{$db_prefix}tblfaz_lancamentos_financeiros` lf ON cb.id = lf.id_conta_bancaria
-LEFT JOIN `{$db_prefix}tblfaz_plano_contas` pc ON lf.id_plano_contas = pc.id
+FROM `{$db_prefix}gf_contas_bancarias` cb
+LEFT JOIN `{$db_prefix}gf_lancamentos_financeiros` lf ON cb.id = lf.id_conta_bancaria
+LEFT JOIN `{$db_prefix}gf_plano_contas` pc ON lf.id_plano_contas = pc.id
 WHERE cb.ativo = 1
 GROUP BY cb.id, cb.banco, cb.agencia, cb.conta, cb.saldo_inicial;";
 
 $CI->db->query($sql_view_saldo_contas);
 
 // Mensagem de sucesso
-echo "Módulo Gestão de Fazendas instalado com sucesso!<br>";
+echo "Módulo Gestão Financeira instalado com sucesso!<br>";
 echo "Todas as tabelas foram criadas e dados iniciais inseridos.<br>";
 echo "Total de tabelas criadas: 10<br>";
 echo "Total de views criadas: 1<br>";
-
