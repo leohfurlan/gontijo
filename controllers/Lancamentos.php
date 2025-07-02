@@ -87,4 +87,91 @@ class Lancamentos extends AdminController
         }
         redirect(admin_url('gestaofinanceira/lancamentos'));
     }
+    /**
+     * NOVO: Processa o upload do ficheiro de lançamentos.
+     */
+    public function upload()
+    {
+        if (!has_permission('gestaofinanceira', '', 'create')) {
+            access_denied('gestaofinanceira');
+        }
+
+        if ($this->input->post() && isset($_FILES['arquivo_lancamentos'])) {
+            try {
+                $dados = gf_read_spreadsheet_file('arquivo_lancamentos');
+                
+                $importados = 0;
+                foreach ($dados as $linha) {
+                    if (empty($linha['A'])) continue;
+
+                    $lancamento = [
+                        'descricao'         => $linha['A'] ?? '',
+                        'valor'             => floatval($linha['B'] ?? 0),
+                        'data_vencimento'   => to_sql_date($linha['C']),
+                        'data_competencia'  => to_sql_date($linha['D']),
+                        'id_plano_contas'   => intval($linha['E'] ?? 0),
+                        'id_centro_custo'   => intval($linha['F'] ?? 0),
+                        'id_entidade'       => intval($linha['G'] ?? 0),
+                        'status'            => $linha['H'] ?? 'A Pagar',
+                    ];
+
+                    if ($this->lancamentos_model->add_lancamento($lancamento)) {
+                        $importados++;
+                    }
+                }
+                set_alert('success', sprintf('Upload realizado com sucesso! %d registos importados.', $importados));
+
+            } catch (Exception $e) {
+                set_alert('danger', 'Erro no upload: ' . $e->getMessage());
+            }
+        }
+
+        redirect(admin_url('gestaofinanceira/lancamentos'));
+    }
+    
+    /**
+     * NOVO: Gera e descarrega um ficheiro de exemplo para importação de lançamentos.
+     */
+    public function download_sample()
+    {
+        require_once(module_dir_path('gestaofinanceira', 'vendor/autoload.php'));
+
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        
+        $headers = [
+            'Descrição',
+            'Valor',
+            'Data Vencimento (DD/MM/YYYY)',
+            'Data Competência (DD/MM/YYYY)',
+            'ID da Categoria (Plano de Contas)',
+            'ID do Centro de Custo',
+            'ID da Entidade (Cliente/Fornecedor)',
+            'Status (Ex: A Pagar, Pago, A Receber)',
+        ];
+        $sheet->fromArray($headers, NULL, 'A1');
+
+        $example_data = [
+            'Compra de Ração para o Lote 05',
+            '2500.50',
+            date('d/m/Y', strtotime('+15 days')),
+            date('d/m/Y'),
+            '8', // Exemplo: ID da conta "Alimentação Animal"
+            '1', // Exemplo: ID do centro de custo "Fazenda Jacamim"
+            '3', // Exemplo: ID da entidade "Fornecedor Padrão"
+            'A Pagar',
+        ];
+        $sheet->fromArray($example_data, NULL, 'A2');
+
+        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+        $filename = 'modelo_importacao_lancamentos.xlsx';
+
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename="' . $filename . '"');
+        header('Cache-Control: max-age=0');
+        
+        $writer->save('php://output');
+        exit();
+    }
 }
+

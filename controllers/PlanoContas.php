@@ -90,4 +90,82 @@ class Planocontas extends AdminController
         }
         redirect(admin_url('gestaofinanceira/planocontas'));
     }
+    /**
+     * NOVO: Processa o upload do ficheiro do plano de contas.
+     */
+    public function upload()
+    {
+        if (!has_permission('gestaofinanceira', '', 'create')) {
+            access_denied('gestaofinanceira');
+        }
+
+        if ($this->input->post() && isset($_FILES['arquivo_plano_contas'])) {
+            try {
+                $dados = gf_read_spreadsheet_file('arquivo_plano_contas');
+                
+                $importados = 0;
+                foreach ($dados as $linha) {
+                    if (empty($linha['A'])) continue;
+
+                    $conta = [
+                        'codigo_conta'      => $linha['A'] ?? '',
+                        'nome_conta'        => $linha['B'] ?? '',
+                        'tipo_conta'        => $linha['C'] ?? 'Despesa',
+                        'grupo_dre'         => $linha['D'] ?? '',
+                        'aceita_lancamento' => (isset($linha['E']) && strtoupper($linha['E']) == 'SIM') ? 1 : 0,
+                    ];
+
+                    if ($this->planocontas_model->add_conta($conta)) {
+                        $importados++;
+                    }
+                }
+                set_alert('success', sprintf('Upload realizado com sucesso! %d registos importados.', $importados));
+
+            } catch (Exception $e) {
+                set_alert('danger', 'Erro no upload: ' . $e->getMessage());
+            }
+        }
+
+        redirect(admin_url('gestaofinanceira/planocontas'));
+    }
+    
+    /**
+     * NOVO: Gera e descarrega um ficheiro de exemplo para importação.
+     */
+    public function download_sample()
+    {
+        require_once(module_dir_path('gestaofinanceira', 'vendor/autoload.php'));
+
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        
+        $headers = [
+            'Código da Conta',
+            'Nome da Conta',
+            'Tipo (Receita ou Despesa)',
+            'Grupo DRE',
+            'Aceita Lançamento (SIM ou NAO)',
+        ];
+        $sheet->fromArray($headers, NULL, 'A1');
+
+        $example_data = [
+            '5.3.1.01',
+            'Manutenção de Veículos',
+            'Despesa',
+            'Custo Fixo',
+            'SIM',
+        ];
+        $sheet->fromArray($example_data, NULL, 'A2');
+
+        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+        $filename = 'modelo_importacao_plano_contas.xlsx';
+
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename="' . $filename . '"');
+        header('Cache-Control: max-age=0');
+        
+        $writer->save('php://output');
+        exit();
+    }
 }
+

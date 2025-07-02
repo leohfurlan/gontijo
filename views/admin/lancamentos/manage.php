@@ -10,6 +10,27 @@
                             <a href="<?php echo admin_url('gestaofinanceira/lancamentos/lancamento'); ?>" class="btn btn-info pull-left display-block">
                                 <i class="fa fa-plus-circle"></i> Novo Lançamento
                             </a>
+                            
+                            <!-- BOTÕES DE IMPORTAÇÃO E DOWNLOAD ADICIONADOS -->
+                            <div class="btn-group pull-left mleft5">
+                                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    <i class="fa fa-upload"></i> Importar <span class="caret"></span>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li>
+                                        <a href="#" data-toggle="modal" data-target="#import_modal">
+                                            Importar de Ficheiro
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="<?php echo admin_url('gestaofinanceira/lancamentos/download_sample'); ?>">
+                                            Baixar Ficheiro de Exemplo
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                            <!-- FIM DOS BOTÕES -->
+
                         </div>
                         <div class="clearfix"></div>
                         <hr class="hr-panel-heading" />
@@ -65,6 +86,30 @@
         </div>
     </div>
 </div>
+<!-- JANELA MODAL DE IMPORTAÇÃO -->
+<div class="modal fade" id="import_modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">Importar Lançamentos (.csv, .xls, .xlsx)</h4>
+            </div>
+            <?php echo form_open_multipart(admin_url('gestaofinanceira/lancamentos/upload'), ['id' => 'import-form']); ?>
+            <div class="modal-body">
+                <p>Para garantir uma importação correta, o seu ficheiro deve ter as colunas na ordem correta. Use o ficheiro de exemplo como guia.</p>
+                <hr />
+                <?php echo render_input('arquivo_lancamentos', 'Selecione o Ficheiro', '', 'file'); ?>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Fechar</button>
+                <button type="submit" class="btn btn-info">Iniciar Importação</button>
+            </div>
+            <?php echo form_close(); ?>
+        </div>
+    </div>
+</div>
+<!-- FIM DA JANELA MODAL -->
+
 <?php init_tail(); ?>
 <script>
     $(function() {

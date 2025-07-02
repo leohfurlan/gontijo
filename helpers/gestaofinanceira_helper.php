@@ -272,3 +272,56 @@ if (!function_exists('log_activity')) {
     }
 }
 
+
+/**
+ * NOVO: Lê um ficheiro de planilha (CSV, XLS, XLSX) e retorna os dados como um array.
+ * Esta função é reutilizável para qualquer tipo de importação.
+ * @param  string $field_name O nome do campo do formulário (ex: 'arquivo_ativos_gado')
+ * @return array              Os dados da planilha
+ * @throws Exception          Se o upload ou a leitura falharem
+ */
+function gf_read_spreadsheet_file($field_name)
+{
+    // Garante que a biblioteca PhpSpreadsheet está carregada
+    require_once(module_dir_path('gestaofinanceira', 'third_party/PhpSpreadsheet/vendor/autoload.php'));
+
+    $CI = &get_instance();
+    $CI->load->library('upload');
+
+    $path = FCPATH . 'uploads/tmp/';
+    if (!is_dir($path)) {
+        mkdir($path, 0755, true);
+    }
+
+    $config['upload_path']   = $path;
+    $config['allowed_types'] = 'csv|xls|xlsx';
+    $CI->upload->initialize($config);
+
+    if (!$CI->upload->do_upload($field_name)) {
+        throw new Exception($CI->upload->display_errors('', ''));
+    }
+
+    $upload_data = $CI->upload->data();
+    $file_path = $upload_data['full_path'];
+    $file_ext = strtolower($upload_data['file_ext']);
+
+    if ($file_ext == '.csv') {
+        $reader = new \PhpOffice\PhpSpreadsheet\Reader\Csv();
+    } elseif ($file_ext == '.xlsx') {
+        $reader = new \PhpOffice\PhpSpreadsheet\Reader\Xlsx();
+    } else {
+        $reader = new \PhpOffice\PhpSpreadsheet\Reader\Xls();
+    }
+
+    $spreadsheet = $reader->load($file_path);
+    $sheetData = $spreadsheet->getActiveSheet()->toArray(null, true, true, true);
+    
+    unlink($file_path); // Apaga o ficheiro temporário
+
+    // Remove o cabeçalho (primeira linha) do array
+    if (isset($sheetData[1])) {
+        unset($sheetData[1]);
+    }
+
+    return array_values($sheetData); // Reindexa o array
+}

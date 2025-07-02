@@ -11,58 +11,37 @@ class Ativosgado extends AdminController
         $this->load->helper('gestaofinanceira');
     }
 
-    /**
-     * Exibe a página principal com a tabela e o resumo dos Ativos de Gado.
-     */
     public function index()
     {
         if (!has_permission('gestaofinanceira', '', 'view')) {
             access_denied('gestaofinanceira');
         }
 
-        // Prepara todos os dados para a view
         $data['title'] = _l('gf_menu_ativos_gado');
         $data['summary'] = $this->ativosgado_model->get_rebanho_summary();
-        // CORREÇÃO: Buscando a lista de ativos para passar para a view.
         $data['ativos_gado'] = $this->ativosgado_model->get_ativos_gado();
         
         $this->load->view('admin/ativosgado/manage', $data);
     }
 
-    /**
-     * O método tabela() não é mais necessário com a renderização client-side.
-     * Foi removido.
-     */
-
-    /**
-     * Adiciona ou Edita um lote de gado.
-     * @param int $id O ID do lote a ser editado (opcional)
-     */
     public function ativo($id = '')
     {
         if ($this->input->post()) {
             $data = $this->input->post();
             if ($id == '') {
                 // Adicionar
-                if (!has_permission('gestaofinanceira', '', 'create')) {
-                    access_denied('gestaofinanceira');
-                }
                 $insert_id = $this->ativosgado_model->add_ativo_gado($data);
                 if ($insert_id) {
                     set_alert('success', _l('added_successfully', _l('gf_ativo_gado')));
-                    redirect(admin_url('gestaofinanceira/ativosgado'));
                 }
             } else {
                 // Editar
-                if (!has_permission('gestaofinanceira', '', 'edit')) {
-                    access_denied('gestaofinanceira');
-                }
                 $success = $this->ativosgado_model->update_ativo_gado($id, $data);
                 if ($success) {
                     set_alert('success', _l('updated_successfully', _l('gf_ativo_gado')));
                 }
-                redirect(admin_url('gestaofinanceira/ativosgado'));
             }
+            redirect(admin_url('gestaofinanceira/ativosgado'));
         }
 
         if ($id == '') {
@@ -79,10 +58,6 @@ class Ativosgado extends AdminController
         $this->load->view('admin/ativosgado/ativo_form', $data);
     }
 
-    /**
-     * Deleta um lote de gado.
-     * @param int $id
-     */
     public function delete($id)
     {
         if (!has_permission('gestaofinanceira', '', 'delete')) {
@@ -98,5 +73,84 @@ class Ativosgado extends AdminController
             set_alert('warning', _l('problem_deleting', _l('gf_ativo_gado')));
         }
         redirect(admin_url('gestaofinanceira/ativosgado'));
+    }
+
+    public function upload()
+    {
+        if (!has_permission('gestaofinanceira', '', 'create')) {
+            access_denied('gestaofinanceira');
+        }
+
+        if ($this->input->post() && isset($_FILES['arquivo_ativos_gado'])) {
+            try {
+                $dados = gf_read_spreadsheet_file('arquivo_ativos_gado');
+                
+                $importados = 0;
+                foreach ($dados as $linha) {
+                    if (empty($linha['A'])) continue;
+
+                    $ativo_gado = [
+                        'descricao_lote'        => $linha['A'] ?? '',
+                        'data_entrada'          => to_sql_date($linha['B']),
+                        'categoria'             => $linha['C'] ?? '',
+                        'quantidade_cabecas'    => intval($linha['D'] ?? 0),
+                        'peso_medio_entrada'    => floatval($linha['E'] ?? 0),
+                        'custo_total_aquisicao' => floatval($linha['F'] ?? 0),
+                        'id_centro_custo'       => intval($linha['G'] ?? 1)
+                    ];
+
+                    if ($this->ativosgado_model->add_ativo_gado($ativo_gado)) {
+                        $importados++;
+                    }
+                }
+                set_alert('success', sprintf('Upload realizado com sucesso! %d registos importados.', $importados));
+
+            } catch (Exception $e) {
+                set_alert('danger', 'Erro no upload: ' . $e->getMessage());
+            }
+        }
+
+        redirect(admin_url('gestaofinanceira/ativosgado'));
+    }
+    
+    public function download_sample()
+    {
+        // CORREÇÃO: O caminho agora aponta para a pasta 'vendor' na raiz do módulo.
+        require_once(module_dir_path('gestaofinanceira', 'vendor/autoload.php'));
+
+        $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        
+        $headers = [
+            'Descrição do Lote',
+            'Data de Entrada (DD/MM/YYYY)',
+            'Categoria',
+            'Quantidade de Cabeças',
+            'Peso Médio de Entrada (kg)',
+            'Custo Total de Aquisição',
+            'ID do Centro de Custo',
+        ];
+        $sheet->fromArray($headers, NULL, 'A1');
+
+        $example_data = [
+            'Lote de Bezerros Nelore 01',
+            date('d/m/Y'),
+            'Bezerros',
+            50,
+            180,
+            75000.00,
+            1,
+        ];
+        $sheet->fromArray($example_data, NULL, 'A2');
+
+        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+        $filename = 'modelo_importacao_ativos.xlsx';
+
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename="' . $filename . '"');
+        header('Cache-Control: max-age=0');
+        
+        $writer->save('php://output');
+        exit();
     }
 }

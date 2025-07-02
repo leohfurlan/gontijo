@@ -19,14 +19,20 @@ $route['admin/gestaofinanceira/lancamentos'] = 'gestaofinanceira/lancamentos/ind
 $route['admin/gestaofinanceira/contasbancarias'] = 'gestaofinanceira/contasbancarias/index';
 // ROTA ADICIONADA: Rota principal para a landing page de relatórios.
 $route['admin/gestaofinanceira/relatorios'] = 'gestaofinanceira/relatorios/index';
+$route['admin/gestaofinanceira/centroscusto'] = 'gestaofinanceira/centroscusto/index';
 
 
 // --- ROTAS ESPECÍFICAS ---
 
-// Lançamentos (CRUD)
+// Lançamentos (CRUD e Importação)
+$route['admin/gestaofinanceira/lancamentos'] = 'gestaofinanceira/lancamentos/index';
 $route['admin/gestaofinanceira/lancamentos/lancamento'] = 'gestaofinanceira/lancamentos/lancamento';
 $route['admin/gestaofinanceira/lancamentos/lancamento/(:num)'] = 'gestaofinanceira/lancamentos/lancamento/$1';
 $route['admin/gestaofinanceira/lancamentos/delete/(:num)'] = 'gestaofinanceira/lancamentos/delete/$1';
+// ROTAS ADICIONADAS
+$route['admin/gestaofinanceira/lancamentos/upload'] = 'gestaofinanceira/lancamentos/upload';
+$route['admin/gestaofinanceira/lancamentos/download_sample'] = 'gestaofinanceira/lancamentos/download_sample';
+
 
 // Contas Bancárias (CRUD)
 $route['admin/gestaofinanceira/contasbancarias/conta'] = 'gestaofinanceira/contasbancarias/conta';
@@ -43,15 +49,25 @@ $route['admin/gestaofinanceira/entidades/entidade'] = 'gestaofinanceira/entidade
 $route['admin/gestaofinanceira/entidades/entidade/(:num)'] = 'gestaofinanceira/entidades/entidade/$1';
 $route['admin/gestaofinanceira/entidades/delete/(:num)'] = 'gestaofinanceira/entidades/delete/$1';
 
-// Plano de Contas (CRUD)
+// Plano de Contas (CRUD e Importação)
+$route['admin/gestaofinanceira/planocontas'] = 'gestaofinanceira/planocontas/index';
 $route['admin/gestaofinanceira/planocontas/conta'] = 'gestaofinanceira/planocontas/conta';
 $route['admin/gestaofinanceira/planocontas/conta/(:num)'] = 'gestaofinanceira/planocontas/conta/$1';
 $route['admin/gestaofinanceira/planocontas/delete/(:num)'] = 'gestaofinanceira/planocontas/delete/$1';
+$route['admin/gestaofinanceira/planocontas/upload'] = 'gestaofinanceira/planocontas/upload';
+$route['admin/gestaofinanceira/planocontas/download_sample'] = 'gestaofinanceira/planocontas/download_sample';
+
 
 // Endividamento (CRUD)
 $route['admin/gestaofinanceira/endividamento/contrato'] = 'gestaofinanceira/endividamento/contrato';
 $route['admin/gestaofinanceira/endividamento/contrato/(:num)'] = 'gestaofinanceira/endividamento/contrato/$1';
 $route['admin/gestaofinanceira/endividamento/delete/(:num)'] = 'gestaofinanceira/endividamento/delete/$1';
+
+
+// Centro de Custos (CRUD)
+$route['admin/gestaofinanceira/centroscusto/centro'] = 'gestaofinanceira/centroscusto/centro';
+$route['admin/gestaofinanceira/centroscusto/centro/(:num)'] = 'gestaofinanceira/centroscusto/centro/$1';
+$route['admin/gestaofinanceira/centroscusto/delete/(:num)'] = 'gestaofinanceira/centroscusto/delete/$1';
 
 
 // Relatórios (rotas para os relatórios individuais)
