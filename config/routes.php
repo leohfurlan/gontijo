@@ -7,10 +7,9 @@ defined('BASEPATH') or exit('No direct script access allowed');
 |--------------------------------------------------------------------------
 */
 
+
 // Rota Principal para o Dashboard
 $route['admin/gestaofinanceira'] = 'gestaofinanceira/dashboard/index';
-
-// Rotas para as seções principais
 $route['admin/gestaofinanceira/dashboard'] = 'gestaofinanceira/dashboard/index';
 $route['admin/gestaofinanceira/entidades'] = 'gestaofinanceira/entidades/index';
 $route['admin/gestaofinanceira/planocontas'] = 'gestaofinanceira/planocontas/index';
@@ -48,6 +47,11 @@ $route['admin/gestaofinanceira/entidades/delete/(:num)'] = 'gestaofinanceira/ent
 $route['admin/gestaofinanceira/planocontas/conta'] = 'gestaofinanceira/planocontas/conta';
 $route['admin/gestaofinanceira/planocontas/conta/(:num)'] = 'gestaofinanceira/planocontas/conta/$1';
 $route['admin/gestaofinanceira/planocontas/delete/(:num)'] = 'gestaofinanceira/planocontas/delete/$1';
+
+// Endividamento (CRUD)
+$route['admin/gestaofinanceira/endividamento/contrato'] = 'gestaofinanceira/endividamento/contrato';
+$route['admin/gestaofinanceira/endividamento/contrato/(:num)'] = 'gestaofinanceira/endividamento/contrato/$1';
+$route['admin/gestaofinanceira/endividamento/delete/(:num)'] = 'gestaofinanceira/endividamento/delete/$1';
 
 
 // Relatórios (rotas para os relatórios individuais)

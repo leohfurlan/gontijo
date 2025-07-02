@@ -150,4 +150,44 @@ class Ativosgado_model extends App_Model
 
         return $summary;
     }
+
+    /**
+     * NOVO: Retorna o número total de cabeças de gado ativas.
+     * @return int
+     */
+    public function get_total_rebanho()
+    {
+        $this->db->select_sum('quantidade_cabecas');
+        $this->db->where('status_lote', 'Ativo');
+        $result = $this->db->get($this->table_name)->row();
+        return $result->quantidade_cabecas ?? 0;
+    }
+
+    /**
+     * NOVO: Retorna o valor total de aquisição do rebanho ativo.
+     * @return float
+     */
+    public function get_valor_total_ativo()
+    {
+        $this->db->select_sum('custo_total_aquisicao');
+        $this->db->where('status_lote', 'Ativo');
+        $result = $this->db->get($this->table_name)->row();
+        return $result->custo_total_aquisicao ?? 0;
+    }
+
+    /**
+     * NOVO: Calcula o custo médio por cabeça de gado.
+     * @return float
+     */
+    public function get_custo_medio_por_animal()
+    {
+        $total_valor = $this->get_valor_total_ativo();
+        $total_cabecas = $this->get_total_rebanho();
+
+        if ($total_cabecas > 0) {
+            return $total_valor / $total_cabecas;
+        }
+
+        return 0;
+    }
 }

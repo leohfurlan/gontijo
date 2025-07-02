@@ -1,51 +1,31 @@
 <?php
-
 defined('BASEPATH') or exit('No direct script access allowed');
 
 /*
 Module Name: Gestão Financeira
-Description: Módulo para gestão financeira completa, incluindo contas a pagar/receber, fluxo de caixa, ativos e relatórios.
+Description: Módulo para gestão financeira completa.
 Version: 1.0.0
 Requires at least: 2.3.0
 */
 
-/**
- * Define o nome do módulo para usar nas permissões e hooks.
- */
 define('GESTAOFINANCEIRA_MODULE_NAME', 'gestaofinanceira');
 
-/**
- * Registra o hook de ativação do módulo.
- */
 register_activation_hook(GESTAOFINANCEIRA_MODULE_NAME, 'gestaofinanceira_activation_hook');
 
-/**
- * Função executada na ativação do módulo.
- */
 function gestaofinanceira_activation_hook()
 {
     $CI = &get_instance();
     require_once(__DIR__ . '/install.php');
 }
 
-/**
- * Registra o hook de idioma do módulo.
- */
 register_language_files(GESTAOFINANCEIRA_MODULE_NAME, [GESTAOFINANCEIRA_MODULE_NAME]);
 
-/**
- * Adiciona os itens de menu e permissões.
- */
 hooks()->add_action('admin_init', 'gestaofinanceira_init_menu_and_permissions');
 
-/**
- * Função que inicializa os menus e as permissões.
- */
 function gestaofinanceira_init_menu_and_permissions()
 {
     $CI = &get_instance();
 
-    // --- PERMISSÕES ---
     $capabilities = [
         'capabilities' => [
             'view'   => _l('permission_view') . '(' . _l('permission_global') . ')',
@@ -56,16 +36,15 @@ function gestaofinanceira_init_menu_and_permissions()
     ];
     register_staff_capabilities(GESTAOFINANCEIRA_MODULE_NAME, $capabilities, _l('gf_menu_main'));
 
-    // --- MENU PRINCIPAL ---
+    // Menu Principal
     $CI->app_menu->add_sidebar_menu_item('gestaofinanceira', [
         'name'     => _l('gf_menu_main'),
         'href'     => admin_url('gestaofinanceira'),
         'position' => 10,
-        'icon'     => 'fa fa-money', // O ícone está correto.
+        'icon'     => 'fa fa-money',
     ]);
-
-    // --- SUBMENUS ---
-    // Dashboard
+    
+    // Submenu do Dashboard
     $CI->app_menu->add_sidebar_children_item('gestaofinanceira', [
         'slug'     => 'gestaofinanceira-dashboard',
         'name'     => _l('gf_menu_dashboard'),
@@ -117,6 +96,15 @@ function gestaofinanceira_init_menu_and_permissions()
         'href'     => admin_url('gestaofinanceira/ativosgado'),
         'position' => 30,
         'icon'     => 'fa fa-paw',
+    ]);
+
+    // Endividamento (NOVO)
+    $CI->app_menu->add_sidebar_children_item('gestaofinanceira', [
+        'slug'     => 'gestaofinanceira-endividamento',
+        'name'     => _l('gf_menu_endividamento'),
+        'href'     => admin_url('gestaofinanceira/endividamento'),
+        'position' => 35,
+        'icon'     => 'fa fa-credit-card',
     ]);
 
     // Relatórios
